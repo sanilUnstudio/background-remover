@@ -1,115 +1,193 @@
-import Image from "next/image";
-import localFont from "next/font/local";
+'use client'
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
-});
-
+import { useState, ChangeEvent } from 'react'
+import Image from 'next/image'
+import imageCompression from 'browser-image-compression'
 export default function Home() {
-  return (
-    <div
-      className={`${geistSans.variable} ${geistMono.variable} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]`}
-    >
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/pages/index.js
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [images, setImages] = useState([]);
+  const [uiState, setUiState] = useState("Result will show here");
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  const handleImageUpload = async (e) => {
+    const files = Array.from(e.target.files); // Convert FileList to an array
+
+    console.log("sanil",files)
+    if (files) {
+      // const newImages = Array.from(files).slice(0, 10).map(file => URL.createObjectURL(file))
+
+
+        console.log('entered in multiplefiles upload')
+         setUiState("Loading...")
+
+        try {
+          const allData = await Promise.all(
+            files.map(async (file) => {
+              let responseImageBase64 = null
+
+              const removeBackgroundResponse = await removeBackgroundPhotoRoom(
+                file,
+                'sanil@unstudio.ai'
+              )
+
+              const options = {
+                maxSizeMB: 2, // Set the desired maximum size in MB
+                maxWidthOrHeight: 1024, // Set the desired maximum width or height
+                useWebWorker: true // Use Web Worker for better performance
+              }
+
+              if (!removeBackgroundResponse?.imageFile) {
+                throw new Error('Error in Photoroom!');
+              } else {
+                console.log(
+                  `Uncompressed file for ${file.name}`,
+                  removeBackgroundResponse.imageFile
+                )
+
+                const compressedBlob = await imageCompression(
+                  removeBackgroundResponse.imageFile,
+                  options
+                )
+                console.log(`Compressed file for ${file.name}`, compressedBlob)
+
+                responseImageBase64 = await convertToBase64(compressedBlob)
+              }
+
+              return { url:responseImageBase64 }
+            })
+          )
+
+          setImages(allData);
+          setUiState("done")
+          console.log("sanil", allData);
+        } catch (error) {
+          console.log('Error uploading products', error)
+          setUiState("Error in removing background please try again...")
+        }
+
+     e.target.value= ''
+    }
+  }
+
+  return (
+    <div className="min-h-screen w-full p-8">
+      <h1 className="text-center text-3xl font-bold mb-8">Background Remover</h1>
+
+      <div className="mb-8 flex justify-center">
+        <label htmlFor="image-upload" className="cursor-pointer bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+          Upload Images (Max 10)
+          <input
+            id="image-upload"
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleImageUpload}
+            className="hidden"
+          />
+        </label>
+      </div>
+
+      {
+        uiState != 'done' ?
+          <div className='h-[75vh] flex justify-center items-center border rounded-lg border-dotted'>
+            <h1>{uiState }</h1>
+          </div>
+        : <div className="grid grid-cols-4 gap-4 border overflow-auto h-[75vh]">
+        {images.map((src, index) => (
+          <div
+            key={index}
+            onClick={() => downloadImageClientSide(src.url)}
+            className="aspect-square relative h-[350px] w-full overflow-hidden rounded-lg shadow-md border border-white border-opacity-40 cursor-pointer"
           >
             <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+              src={src.url}
+              alt={`Uploaded image ${index + 1}`}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          </div>
+        ))}
+      </div>}
+
     </div>
-  );
+  )
+}
+
+
+const convertToBase64 = (file) => {
+  return new Promise((resolve, reject) => {
+    const fileReader = new FileReader()
+    fileReader.readAsDataURL(file)
+    fileReader.onload = () => {
+      resolve(fileReader.result)
+    }
+    fileReader.onerror = (error) => {
+      reject(error)
+    }
+  })
+}
+
+
+async function removeBackgroundPhotoRoom(file, userEmail) {
+  try {
+    const url = 'https://sdk.photoroom.com/v1/segment';
+    let fileToUpload = file;
+
+    const form = new FormData();
+    // Append file and other parameters to the form
+    form.append('image_file', fileToUpload);
+    form.append('format', 'png');
+    form.append('size', 'full');
+    form.append('crop', 'false');
+
+    const options = {
+      method: 'POST',
+      headers: {
+        Accept: 'image/png, application/json',
+        'x-api-key': process.env.NEXT_PUBLIC_PHOTOROOM,
+        'pr-background-removal-model-version': '2024-09-26'
+      },
+      body: form
+    };
+
+    const response = await fetch(url, options);
+    if (response.status === 200) {
+      const outputBlob = await response.blob();
+      const imageFile = new File([outputBlob], 'bg.png', {
+        type: outputBlob.type
+      });
+      return { imageFile };
+    } else {
+      console.log(response.status);
+      throw new Error(response.statusText);
+    }
+  } catch (error) {
+    return null;
+  }
+}
+
+
+
+async function downloadImageClientSide(imageUrl, fileName = "downloaded-image.jpg") {
+  try {
+    // Fetch the image as a Blob
+    const response = await fetch(imageUrl);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const blob = await response.blob();
+
+    // Create a URL for the Blob
+    const blobUrl = URL.createObjectURL(blob);
+
+    // Create an anchor element
+    const anchor = document.createElement("a");
+    anchor.href = blobUrl; // Set the Blob URL as the href
+    anchor.download = fileName; // Set the download attribute with the filename
+    document.body.appendChild(anchor); // Append the anchor to the body
+    anchor.click(); // Trigger the download
+    document.body.removeChild(anchor); // Clean up by removing the anchor
+    URL.revokeObjectURL(blobUrl); // Revoke the Blob URL to free memory
+  } catch (error) {
+    console.error("Error downloading the image:", error);
+  }
 }
