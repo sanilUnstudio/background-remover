@@ -2,7 +2,6 @@
 
 import { useState, ChangeEvent } from 'react'
 import Image from 'next/image'
-import imageCompression from 'browser-image-compression'
 export default function Home() {
   const [images, setImages] = useState([]);
   const [uiState, setUiState] = useState("Result will show here");
@@ -12,9 +11,6 @@ export default function Home() {
 
     console.log("sanil",files)
     if (files) {
-      // const newImages = Array.from(files).slice(0, 10).map(file => URL.createObjectURL(file))
-
-
         console.log('entered in multiplefiles upload')
          setUiState("Loading...")
 
@@ -28,36 +24,20 @@ export default function Home() {
                 'sanil@unstudio.ai'
               )
 
-              const options = {
-                maxSizeMB: 2, // Set the desired maximum size in MB
-                maxWidthOrHeight: 1024, // Set the desired maximum width or height
-                useWebWorker: true // Use Web Worker for better performance
-              }
-
+            
               if (!removeBackgroundResponse?.imageFile) {
                 throw new Error('Error in Photoroom!');
               } else {
-                console.log(
-                  `Uncompressed file for ${file.name}`,
-                  removeBackgroundResponse.imageFile
-                )
-
-                const compressedBlob = await imageCompression(
-                  removeBackgroundResponse.imageFile,
-                  options
-                )
-                console.log(`Compressed file for ${file.name}`, compressedBlob)
-
-                responseImageBase64 = await convertToBase64(compressedBlob)
+                responseImageBase64 = URL.createObjectURL(removeBackgroundResponse.imageFile)
               }
 
-              return { url:responseImageBase64 }
+              return { url: responseImageBase64 }
             })
           )
 
           setImages(allData);
           setUiState("done")
-          console.log("sanil", allData);
+          console.log("result", allData);
         } catch (error) {
           console.log('Error uploading products', error)
           setUiState("Error in removing background please try again...")
