@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, ChangeEvent } from 'react'
-import Image from 'next/image'
+
 export default function Home() {
   const [images, setImages] = useState([]);
   const [uiState, setUiState] = useState("Result will show here");
@@ -74,10 +74,10 @@ export default function Home() {
         {images.map((src, index) => (
           <div
             key={index}
-            onClick={() => downloadImageClientSide(src.url)}
+            onClick={() => downloadImageWithWhiteBackground(src.url)}
             className="aspect-square relative h-[350px] w-full overflow-hidden rounded-lg shadow-md border border-white border-opacity-40 cursor-pointer"
           >
-            <Image
+            <img
               src={src.url}
               alt={`Uploaded image ${index + 1}`}
               fill
@@ -147,7 +147,7 @@ async function removeBackgroundPhotoRoom(file, userEmail) {
 
 
 
-async function downloadImageClientSide(imageUrl, fileName = "downloaded-image.jpg") {
+async function downloadImageWithWhiteBackground(imageUrl, fileName = "downloaded-image.png") {
   try {
     // Fetch the image as a Blob
     const response = await fetch(imageUrl);
@@ -156,18 +156,56 @@ async function downloadImageClientSide(imageUrl, fileName = "downloaded-image.jp
     }
     const blob = await response.blob();
 
-    // Create a URL for the Blob
+    // Create an Image object
+    const img = new Image();
     const blobUrl = URL.createObjectURL(blob);
+    img.src = blobUrl;
 
-    // Create an anchor element
-    const anchor = document.createElement("a");
-    anchor.href = blobUrl; // Set the Blob URL as the href
-    anchor.download = fileName; // Set the download attribute with the filename
-    document.body.appendChild(anchor); // Append the anchor to the body
-    anchor.click(); // Trigger the download
-    document.body.removeChild(anchor); // Clean up by removing the anchor
-    URL.revokeObjectURL(blobUrl); // Revoke the Blob URL to free memory
+    // Wait for the image to load
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+    });
+
+    // Create a canvas and draw the image with a white background
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    // Set canvas size to match the image size
+    canvas.width = img.width;
+    canvas.height = img.height;
+
+    // Fill the canvas with white background
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw the image on top of the white background
+    ctx.drawImage(img, 0, 0);
+
+    // Convert the canvas content to a Blob with the same format as the original
+    canvas.toBlob(
+      (canvasBlob) => {
+        if (!canvasBlob) {
+          throw new Error("Canvas blob creation failed.");
+        }
+
+        // Create a URL for the Blob
+        const downloadUrl = URL.createObjectURL(canvasBlob);
+
+        // Create an anchor element
+        const anchor = document.createElement("a");
+        anchor.href = downloadUrl; // Set the Blob URL as the href
+        anchor.download = fileName; // Set the download attribute with the filename
+        document.body.appendChild(anchor); // Append the anchor to the body
+        anchor.click(); // Trigger the download
+        document.body.removeChild(anchor); // Clean up by removing the anchor
+        URL.revokeObjectURL(downloadUrl); // Revoke the Blob URL to free memory
+        URL.revokeObjectURL(blobUrl); // Revoke the original image Blob URL
+      },
+      blob.type // Use the same format as the original image (e.g., "image/png" or "image/jpeg")
+    );
   } catch (error) {
     console.error("Error downloading the image:", error);
   }
 }
+
