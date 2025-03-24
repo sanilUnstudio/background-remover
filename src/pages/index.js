@@ -24,19 +24,22 @@ export default function Home() {
               "sanil@unstudio.ai"
             );
 
-            if (!removeBackgroundResponse?.imageFile) {
-              throw new Error("Error in Photoroom!");
-            } else {
-              // Add a white background to the image
-              const imageWithWhiteBackground = await addWhiteBackgroundToImage(
-                removeBackgroundResponse.imageFile
-              );
+            // if (!removeBackgroundResponse?.imageFile) {
+            //   throw new Error("Error in Photoroom!");
+            // } else {
+            //   // Add a white background to the image
+            //   const imageWithWhiteBackground = await addWhiteBackgroundToImage(
+            //     removeBackgroundResponse.imageFile
+            //   );
 
-              // Convert the resulting blob into a URL
-              responseImageBase64 = URL.createObjectURL(imageWithWhiteBackground);
-            }
+            //   // Convert the resulting blob into a URL
+            //   responseImageBase64 = URL.createObjectURL(imageWithWhiteBackground);
+            // }
 
-            return { url: responseImageBase64 };
+
+            const blobUrl = URL.createObjectURL(removeBackgroundResponse.imageFile);
+
+            return { url: blobUrl };
           })
         );
 
