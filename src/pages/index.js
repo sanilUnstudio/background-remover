@@ -33,7 +33,8 @@ export default function Home() {
               );
 
               // Convert the resulting blob into a URL
-              responseImageBase64 = URL.createObjectURL(imageWithWhiteBackground);
+              // responseImageBase64 = URL.createObjectURL(imageWithWhiteBackground);
+              responseImageBase64 = URL.createObjectURL(removeBackgroundResponse.imageFile);
             }
 
 
