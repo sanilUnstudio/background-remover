@@ -20,7 +20,7 @@ export default function Home() {
             let responseImageBase64 = null;
 
             const removeBackgroundResponse = await removeBackgroundPhotoRoom(
-              file,
+              file,b hjkl;' '
               "sanil@unstudio.ai"
             );
 
