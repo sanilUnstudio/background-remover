@@ -28,12 +28,12 @@ export default function Home() {
               throw new Error("Error in Photoroom!");
             } else {
               // Add a white background to the image
-              const imageWithWhiteBackground = await addWhiteBackgroundToImage(
-                removeBackgroundResponse.imageFile
-              );
+              // const imageWithWhiteBackground = await addWhiteBackgroundToImage(
+              //   removeBackgroundResponse.imageFile
+              // );
 
               // Convert the resulting blob into a URL
-              responseImageBase64 = URL.createObjectURL(imageWithWhiteBackground);
+              responseImageBase64 = URL.createObjectURL(removeBackgroundResponse.imageFile);
             }
 
 
