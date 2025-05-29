@@ -1,15 +1,16 @@
 'use client'
 
 import { useState, ChangeEvent } from 'react'
+import { useRouter } from 'next/navigation';
+
 
 export default function Home() {
   const [images, setImages] = useState([]);
   const [uiState, setUiState] = useState("Result will show here");
-
+  const router = useRouter();
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files); // Convert FileList to an array
 
-    console.log("sanil", files);
     if (files) {
       console.log("entered in multiplefiles upload");
       setUiState("Loading...");
@@ -28,12 +29,11 @@ export default function Home() {
               throw new Error("Error in Photoroom!");
             } else {
               // Add a white background to the image
-              const imageWithWhiteBackground = await addWhiteBackgroundToImage(
-                removeBackgroundResponse.imageFile
-              );
+              // const imageWithWhiteBackground = await addWhiteBackgroundToImage(
+              //   removeBackgroundResponse.imageFile
+              // );
 
               // Convert the resulting blob into a URL
-              // responseImageBase64 = URL.createObjectURL(imageWithWhiteBackground);
               responseImageBase64 = URL.createObjectURL(removeBackgroundResponse.imageFile);
             }
 
@@ -106,7 +106,10 @@ export default function Home() {
 
   return (
     <div className="min-h-screen w-full p-8">
-      <h1 className="text-center text-3xl font-bold mb-8">Background Remover</h1>
+      <div className='flex items-center justify-between'>
+        <h1 className="text-center text-3xl font-bold">Background Remover</h1>
+        <button className='bg-blue-400 px-3 py-1 rounded-md' onClick={()=> router.push('/crop')}>Crop2X</button>
+      </div>
 
       <div className="mb-8 flex justify-center">
         <label htmlFor="image-upload" className="cursor-pointer bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
@@ -125,24 +128,24 @@ export default function Home() {
       {
         uiState != 'done' ?
           <div className='h-[75vh] flex justify-center items-center border rounded-lg border-dotted'>
-            <h1>{uiState }</h1>
+            <h1>{uiState}</h1>
           </div>
-        : <div className="grid grid-cols-4 gap-4 border overflow-auto h-[75vh]">
-        {images.map((src, index) => (
-          <div
-            key={index}
-            onClick={() => downloadImageClientSide(src.url)}
-            className="aspect-square relative h-[300px] w-full overflow-hidden rounded-lg shadow-md border border-white border-opacity-40 cursor-pointer"
-          >
-            <img
-              src={src.url}
-              alt={`Uploaded image ${index + 1}`}
-              fill
-              className="object-cover"
-            />
-          </div>
-        ))}
-      </div>}
+          : <div className="grid grid-cols-4 gap-4 border overflow-auto h-[75vh]">
+            {images.map((src, index) => (
+              <div
+                key={index}
+                onClick={() => downloadImageClientSide(src.url)}
+                className="aspect-square relative h-[300px] w-full overflow-hidden rounded-lg shadow-md border border-white border-opacity-40 cursor-pointer"
+              >
+                <img
+                  src={src.url}
+                  alt={`Uploaded image ${index + 1}`}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            ))}
+          </div>}
 
     </div>
   )
