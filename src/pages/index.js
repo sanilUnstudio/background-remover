@@ -108,7 +108,11 @@ export default function Home() {
     <div className="min-h-screen w-full p-8">
       <div className='flex items-center justify-between'>
         <h1 className="text-center text-3xl font-bold">Background Remover</h1>
+        <div className='flex items-center gap-2'>
         <button className='bg-blue-400 px-3 py-1 rounded-md' onClick={()=> router.push('/crop')}>Crop2X</button>
+
+        <button className='bg-blue-400 px-3 py-1 rounded-md' onClick={()=> router.push('/white')}>White</button>
+        </div>
       </div>
 
       <div className="mb-8 flex justify-center">
